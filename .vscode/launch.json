@@ -10,7 +10,7 @@
             "request": "launch",
             "args": 
             [
-                "2_squares.ngc",
+                "drawing.ngc",
                 "test.ngc"
             ],
             "mainClass": "${file}"

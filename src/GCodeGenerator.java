@@ -39,6 +39,16 @@ public class GCodeGenerator {
             linearFeedrate));
     }
 
+    public void addLinearZ(double z) {
+        instructions.add(String.format("G01 Z%.4f F%d", z, 
+        linearFeedrate));
+    }
+
+    public void addClockwiseArc(PointXY endPoint, double radius) {
+        instructions.add(String.format("G02 X%.4f Y%.4f R%.4f", 
+            endPoint.getX(), endPoint.getY(), radius));
+    }
+
     public void writeToFile(File file, String header, String footer) 
         throws IOException {
         BufferedWriter writer = new BufferedWriter(new FileWriter(file, false));
