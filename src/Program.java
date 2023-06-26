@@ -24,7 +24,7 @@ public class Program {
 
 			// Validate input file
 			if(!fileIn.exists()) {
-				System.out.println("Input file does not exist!");
+				System.err.println("Input file does not exist!");
 				return;
 			}
 
@@ -55,13 +55,18 @@ public class Program {
 			cutDepth = gExtractor.getCutDepth();
 
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.err.println("Input file does not exist!");
 			return;
 		}
 
-		System.out.printf("Detected clearance height: %.4f\n" + 
+		// Display extracted GCode information, prompt user to continue
+		System.out.printf("\nDetected clearance height: %.4f\n" + 
 			"Detected cut depth: %.4f\n", clearanceHeight, cutDepth);
+		boolean confirm = prompt.promptBoolean(
+			"\nProceed with generating file? (y/n) ", "y", "n");
+		if(!confirm) {
+			return;
+		}
 		
 		String header;
 		try {
@@ -75,18 +80,21 @@ public class Program {
 		try {
 			footer = fileContentsToString(new File("footer.txt"));
 		} catch (FileNotFoundException e) {
-			System.err.println("footer.txt is missing!");
+			System.err.println("footer.txt is myissing!");
 			return;
 		}
 
 		GCodeGenerator generator = new GCodeGenerator(600);
 		generateVMoves(gParser, gExtractor, generator);
+		generateHMoves(gParser, gExtractor, generator);
 		try {
 			generator.writeToFile(fileOut, header, footer);
 		} catch (IOException e) {
 			System.err.println("Failed to write to file!");
 			return;
 		}
+
+		System.out.println("File written to successfully!");
 	}
 
 	public static String fileContentsToString(File file) 
@@ -137,6 +145,46 @@ public class Program {
 						generator.addLinear(new Coordinate(xPos, yPos2, 
 							gExtractor.getClearanceHeight()));
 
+				}
+			}
+		}
+	}
+
+		public static void generateHMoves(GCodeToPoints gParser, 
+			GCodeCutParamExtractor gExtractor, GCodeGenerator generator) {
+
+			for(int item = 0; item < gParser.getNumItems(); item++) {
+				for(int p = 1; p < gParser.getNumPointsAt(item); p++) {
+					PointXY a = gParser.getPoint(item, p - 1);
+					PointXY b = gParser.getPoint(item, p);
+
+					// check if points share same y coordinate
+					if(a.getX() != b.getX() && a.getY() == b.getY()) {
+
+						// maintain direction of cut (left to right)
+						double xPos1 = Math.min(a.getX(), b.getX());
+						double xPos2 = Math.max(a.getX(), b.getX());
+						double yPos = a.getY();
+
+						// move to cut start position
+						generator.addLinear(new Coordinate(xPos1, yPos, 
+							gExtractor.getClearanceHeight()));
+
+						// lower drag knife
+						generator.addLinear(new Coordinate(xPos1, yPos, 
+							gExtractor.getCutDepth()));
+
+						// move drag knife to end position
+						generator.addLinear(new Coordinate(xPos2, yPos, 
+							gExtractor.getCutDepth()));
+
+						/*
+						 * lift drag knife to clearance height to prepare for
+						 * next cut
+						 */
+						generator.addLinear(new Coordinate(xPos2, yPos, 
+							gExtractor.getClearanceHeight()));
+					
 				}
 			}
 		}
