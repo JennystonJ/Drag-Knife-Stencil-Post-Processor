@@ -32,20 +32,4 @@ public class ArgParser {
 
         return args[argType.getTypeIndex()];
     }
-
-    // private String[] argDef;
-
-    // public ArgParser(String[] argDef) {
-    //     this.argDef = argDef;
-    // }
-
-    // public HashMap<String, String> parseArgs(String[] args) {
-    //     HashMap<String, String> values = new HashMap<>();
-
-    //     for(int i = 0; i < args.length; i++) {
-    //         values.put(argDef[i], args[i]);
-    //     }
-
-    //     return values;
-    // }
 }
