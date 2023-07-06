@@ -139,24 +139,32 @@ public class Program {
 						double yPos2 = Math.max(a.getY(), b.getY());
 						double xPos = a.getX();
 
+						/*
+						 * offset Y positions to compensate for drag knife 
+						 * off-center pivot (based on bottom to top cut)
+						 */
+						double yPosOffset1 = yPos1 + 
+							DRAG_KNIFE_OFFSET_FROM_CENTER;
+						double yPosOffset2 = yPos2 + 
+							DRAG_KNIFE_OFFSET_FROM_CENTER;
+
 						// move to cut start position
-						generator.addLinear(new Coordinate(xPos, yPos1, 
+						generator.addLinear(new Coordinate(xPos, yPosOffset1, 
 							gExtractor.getClearanceHeight()));
 
 						// lower drag knife
-						generator.addLinear(new Coordinate(xPos, yPos1, 
-							gExtractor.getCutDepth()));
+						generator.addLinearZ(gExtractor.getCutDepth());
+
 
 						// move drag knife to end position
-						generator.addLinear(new Coordinate(xPos, yPos2, 
+						generator.addLinear(new Coordinate(xPos, yPosOffset2, 
 							gExtractor.getCutDepth()));
 
 						/*
 						 * lift drag knife to clearance height to prepare for
 						 * next cut
 						 */
-						generator.addLinear(new Coordinate(xPos, yPos2, 
-							gExtractor.getClearanceHeight()));
+						generator.addLinearZ(gExtractor.getClearanceHeight());
 
 				}
 			}
@@ -179,24 +187,31 @@ public class Program {
 					double xPos2 = Math.max(a.getX(), b.getX());
 					double yPos = a.getY();
 
+					/*
+					* offset X positions to compensate for drag knife 
+					* off-center pivot (based on left to right cut)
+					*/
+					double xPosOffset1 = xPos1 + 
+						DRAG_KNIFE_OFFSET_FROM_CENTER;
+					double xPosOffset2 = xPos2 + 
+						DRAG_KNIFE_OFFSET_FROM_CENTER;
+
 					// move to cut start position
-					generator.addLinear(new Coordinate(xPos1, yPos, 
+					generator.addLinear(new Coordinate(xPosOffset1, yPos, 
 						gExtractor.getClearanceHeight()));
 
 					// lower drag knife
-					generator.addLinear(new Coordinate(xPos1, yPos, 
-						gExtractor.getCutDepth()));
+					generator.addLinearZ(gExtractor.getCutDepth());
 
 					// move drag knife to end position
-					generator.addLinear(new Coordinate(xPos2, yPos, 
+					generator.addLinear(new Coordinate(xPosOffset2, yPos, 
 						gExtractor.getCutDepth()));
 
 					/*
 					 * lift drag knife to clearance height to prepare for
 					 * next cut
 					 */
-					generator.addLinear(new Coordinate(xPos2, yPos, 
-						gExtractor.getClearanceHeight()));
+					generator.addLinearZ(gExtractor.getClearanceHeight());
 					
 				}
 			}
