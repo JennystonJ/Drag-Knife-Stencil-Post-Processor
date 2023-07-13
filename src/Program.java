@@ -3,8 +3,10 @@ import java.util.Scanner;
 
 public class Program {
 	
-	private final static double DRAG_KNIFE_ORIENT_Z_HEIGHT = 0;
-	private final static double DRAG_KNIFE_OFFSET_FROM_CENTER = 0.25;
+	private final static double DRAG_KNIFE_ORIENT_Z_HEIGHT = -0.15;
+	private final static int DRAG_KNIFE_ORIENT_TIMES = 2;
+	private final static double DRAG_KNIFE_OFFSET_FROM_CENTER = 0.35;
+	private final static double DRAG_KNIFE_OVER_CUT = 0.0;
 
 	private enum DragKnifeDirection {
 		HORIZONTAL(),
@@ -41,6 +43,7 @@ public class Program {
 		}
 		catch(ArgDoesNotExistException ex) {
 			System.err.println("Invalid command line arguments!");
+			return;
 		}
 
 		GCodeToPoints gParser = null;
@@ -68,6 +71,7 @@ public class Program {
 			return;
 		}
 		
+		// Read header and footer files for GCode output
 		String header;
 		try {
 			header = fileContentsToString(new File("header.txt"));
@@ -80,26 +84,27 @@ public class Program {
 		try {
 			footer = fileContentsToString(new File("footer.txt"));
 		} catch (FileNotFoundException e) {
-			System.err.println("footer.txt is myissing!");
+			System.err.println("footer.txt is missing!");
 			return;
 		}
 
 		GCodeGenerator generator = new GCodeGenerator(600);
 
-		//spin drag knife is vertical (bottom to top)
+		// Spin drag knife so it's vertical (bottom to top)
 		orientDragKnife(DRAG_KNIFE_ORIENT_Z_HEIGHT, 
 			DRAG_KNIFE_OFFSET_FROM_CENTER, 
 			DragKnifeDirection.VERTICAL, gExtractor, generator);
 
 		generateVMoves(gParser, gExtractor, generator);
 
-		//spin drag knife so it's horizontal
+		// Spin drag knife so it's horizontal (left to right)
 		orientDragKnife(DRAG_KNIFE_ORIENT_Z_HEIGHT, 
 		DRAG_KNIFE_OFFSET_FROM_CENTER, 
 		DragKnifeDirection.HORIZONTAL, gExtractor, generator);
 
 		generateHMoves(gParser, gExtractor, generator);
 
+		// Write generated GCode to output file
 		try {
 			generator.writeToFile(fileOut, header, footer);
 		} catch (IOException e) {
@@ -120,51 +125,53 @@ public class Program {
 			contents.append("\n");
 		}
 
+		fInput.close();
+
 		return contents.toString();
 	}
 
 	public static void generateVMoves(GCodeToPoints gParser, 
 		GCodeCutParamExtractor gExtractor, GCodeGenerator generator) {
 
-			for(int item = 0; item < gParser.getNumItems(); item++) {
-				for(int p = 1; p < gParser.getNumPointsAt(item); p++) {
-					PointXY a = gParser.getPoint(item, p - 1);
-					PointXY b = gParser.getPoint(item, p);
+		for(int item = 0; item < gParser.getNumItems(); item++) {
+			for(int p = 1; p < gParser.getNumPointsAt(item); p++) {
+				PointXY a = gParser.getPoint(item, p - 1);
+				PointXY b = gParser.getPoint(item, p);
 
-					// check if points share same x coordinate
-					if(a.getX() == b.getX() && a.getY() != b.getY()) {
+				// check if points share same x coordinate
+				if(a.getX() == b.getX() && a.getY() != b.getY()) {
 
-						// maintain direction of cut (bottom to top)
-						double yPos1 = Math.min(a.getY(), b.getY());
-						double yPos2 = Math.max(a.getY(), b.getY());
-						double xPos = a.getX();
+					// maintain direction of cut (bottom to top)
+					double yPos1 = Math.min(a.getY(), b.getY());
+					double yPos2 = Math.max(a.getY(), b.getY());
+					double xPos = a.getX();
 
-						/*
-						 * offset Y positions to compensate for drag knife 
-						 * off-center pivot (based on bottom to top cut)
-						 */
-						double yPosOffset1 = yPos1 + 
-							DRAG_KNIFE_OFFSET_FROM_CENTER;
-						double yPosOffset2 = yPos2 + 
-							DRAG_KNIFE_OFFSET_FROM_CENTER;
+					/*
+					 * offset Y positions to compensate for drag knife 
+					 * off-center pivot (based on bottom to top cut)
+					 */
+					double yPosOffset1 = yPos1 + 
+						DRAG_KNIFE_OFFSET_FROM_CENTER - DRAG_KNIFE_OVER_CUT;
+					double yPosOffset2 = yPos2 + 
+						DRAG_KNIFE_OFFSET_FROM_CENTER + DRAG_KNIFE_OVER_CUT;
 
-						// move to cut start position
-						generator.addLinear(new Coordinate(xPos, yPosOffset1, 
-							gExtractor.getClearanceHeight()));
+					// move to cut start position
+					generator.addLinear(new Coordinate(xPos, yPosOffset1, 
+						gExtractor.getClearanceHeight()));
 
-						// lower drag knife
-						generator.addLinearZ(gExtractor.getCutDepth());
+					// lower drag knife
+					generator.addLinearZ(gExtractor.getCutDepth());
 
 
-						// move drag knife to end position
-						generator.addLinear(new Coordinate(xPos, yPosOffset2, 
-							gExtractor.getCutDepth()));
+					// move drag knife to end position
+					generator.addLinear(new Coordinate(xPos, yPosOffset2, 
+						gExtractor.getCutDepth()));
 
-						/*
-						 * lift drag knife to clearance height to prepare for
-						 * next cut
-						 */
-						generator.addLinearZ(gExtractor.getClearanceHeight());
+					/*
+					 * lift drag knife to clearance height to prepare for
+					 * next cut
+					 */
+					generator.addLinearZ(gExtractor.getClearanceHeight());
 
 				}
 			}
@@ -192,9 +199,9 @@ public class Program {
 					* off-center pivot (based on left to right cut)
 					*/
 					double xPosOffset1 = xPos1 + 
-						DRAG_KNIFE_OFFSET_FROM_CENTER;
+						DRAG_KNIFE_OFFSET_FROM_CENTER - DRAG_KNIFE_OVER_CUT;
 					double xPosOffset2 = xPos2 + 
-						DRAG_KNIFE_OFFSET_FROM_CENTER;
+						DRAG_KNIFE_OFFSET_FROM_CENTER + DRAG_KNIFE_OVER_CUT;
 
 					// move to cut start position
 					generator.addLinear(new Coordinate(xPosOffset1, yPos, 
@@ -221,15 +228,22 @@ public class Program {
 	public static void orientDragKnife(double height, double offset, 
 		DragKnifeDirection dir, GCodeCutParamExtractor gExtractor, 
 		GCodeGenerator generator) {
-			PointXY startPoint;
-			PointXY endPoint;
+			
+			// TODO: Remove (spin full circle instead)
+			// PointXY startPoint;
+			// PointXY endPoint;
+
+			PointXY point;
+
 			if(dir == DragKnifeDirection.HORIZONTAL) {
-				startPoint = new PointXY(-offset, 0);
-				endPoint = new PointXY(offset, 0);
+				point = new PointXY(offset, 0);
+				// startPoint = new PointXY(-offset, 0);
+				// endPoint = new PointXY(offset, 0);
 			}
 			else if(dir == DragKnifeDirection.VERTICAL) {
-				startPoint = new PointXY(0, -offset);
-				endPoint = new PointXY(0, offset);
+				point = new PointXY(0, offset);
+				// startPoint = new PointXY(0, -offset);
+				// endPoint = new PointXY(0, offset);
 			}
 			else {
 				System.err.println("Drag Knife Direction not recognized!");
@@ -240,14 +254,19 @@ public class Program {
 			generator.addLinearZ(gExtractor.getClearanceHeight());
 
 			// move to start position
-			generator.addLinear(new Coordinate(startPoint.getX(), 
-				startPoint.getY(), gExtractor.getClearanceHeight()));
+			generator.addLinear(new Coordinate(point.getX(), point.getY(), 
+				gExtractor.getClearanceHeight()));
+			// generator.addLinear(new Coordinate(startPoint.getX(), 
+			// 	startPoint.getY(), gExtractor.getClearanceHeight()));
 
 			// lower drag knife to orient height
 			generator.addLinearZ(height);
 
-			// spin drag knife to desired orientation
-			generator.addClockwiseArc(endPoint, offset);
+			// spin drag knife to desired orientation drag knife orient times
+			for(int i = 0; i < DRAG_KNIFE_ORIENT_TIMES; i++) {
+				generator.addClockwiseArc(-point.getX(), -point.getY());
+			}
+			// generator.addClockwiseArc(endPoint, offset);
 
 
 			// raise drag knife to clearance height for next move
