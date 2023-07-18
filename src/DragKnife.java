@@ -77,11 +77,17 @@ public class DragKnife {
     private void generateEntryRamp(PointXY startPoint, 
         DragKnifeDirection direction) {
         PointXY rampStartPoint = null;
+
+        // Determine ramp direction
         if(direction == DragKnifeDirection.HORIZONTAL) {
+
+            // Calculate horizontal ramp exit
             rampStartPoint = new PointXY(startPoint.getX() - rampLength, 
                 startPoint.getY());
         }
         else if(direction == DragKnifeDirection.VERTICAL) {
+
+            // Calculate vertical ramp start
             rampStartPoint = new PointXY(startPoint.getX(), 
                 startPoint.getY() - rampLength);
         }
@@ -94,7 +100,7 @@ public class DragKnife {
         DragKnifeDirection direction) {
         PointXY rampExitPoint = null;
 
-        // Determine direction
+        // Determine ramp direction
         if(direction == DragKnifeDirection.HORIZONTAL) {
             
             // Calculate horizontal ramp start
@@ -169,6 +175,7 @@ public class DragKnife {
 			
 			PointXY point;
 
+            // Determine desired direction
 			if(direction == DragKnifeDirection.HORIZONTAL) {
 				point = new PointXY(offset, 0);
 			}
