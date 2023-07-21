@@ -149,25 +149,21 @@ public class DragKnife {
         if(direction == DragKnifeDirection.HORIZONTAL && 
             Math.min(points[0].getX(), points[1].getX()) != 
             points[0].getX()) {
+            
             // Swap point to sorted order
-            if(Math.min(points[0].getX(), points[1].getX()) != 
-                points[0].getX()) {
-                PointXY tempPoint = points[0];
-                points[0] = points[1];
-                points[1] = tempPoint;
-            }
+            PointXY tempPoint = points[0];
+            points[0] = points[1];
+            points[1] = tempPoint;
         }
         // Sort points vertically
         else if(direction == DragKnifeDirection.VERTICAL && 
             Math.min(points[0].getY(), points[1].getY()) != 
             points[0].getY()) {
-                // Swap points to sorted order
-                if(Math.min(points[0].getX(), points[1].getX()) != 
-                    points[0].getX()) {
-                    PointXY tempPoint = points[0];
-                    points[0] = points[1];
-                    points[1] = tempPoint;
-                }
+            
+            // Swap points to sorted order
+            PointXY tempPoint = points[0];
+            points[0] = points[1];
+            points[1] = tempPoint;
         }
     }
 
