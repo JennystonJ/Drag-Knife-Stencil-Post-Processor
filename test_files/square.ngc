@@ -1,0 +1,26 @@
+(Project square)
+(Created by Estlcam version 11 build 11.244)
+(Machining time about 00:00:05 hours)
+
+(Required tools:)
+(Drag Knife)
+
+G90
+M03 S24000
+G00 Z2.0000
+
+
+(No. 1: Engraving 1)
+G00 X5.0000 Y5.0000
+G00 Z0.5000
+G01 Z0.0000 F480 S24000
+G01 Z-0.2000
+G01 Y24.9457 F1200
+G01 X24.9457
+G01 Y5.0000
+G01 X5.0000
+G00 Z2.0000
+G00 X0.0000 Y0.0000
+
+M05
+M30
