@@ -38,17 +38,17 @@ public class DragKnife {
     public void drawLine(PointXY a, PointXY b) {
 
         // Determine if cut direction matches current direction
-        if(a.getY() == b.getY() && knifeDirection != 
-            DragKnifeDirection.HORIZONTAL) {
-
-            // Make drag knife horizontal (left to right)
-            orientDragKnife(DragKnifeDirection.HORIZONTAL);
+        if(a.getY() == b.getY()) {
+            if(knifeDirection != DragKnifeDirection.HORIZONTAL) {
+                // Make drag knife horizontal (left to right)
+                orientDragKnife(DragKnifeDirection.HORIZONTAL);
+            }
         }
-        else if(a.getX() == b.getX() && knifeDirection !=
-            DragKnifeDirection.VERTICAL) {
-
-            // Make drag knfie vertical (bottom to top)
-            orientDragKnife(DragKnifeDirection.VERTICAL);
+        else if(a.getX() == b.getX()) {
+            if(knifeDirection != DragKnifeDirection.VERTICAL) {
+                // Make drag knfie vertical (bottom to top)
+                orientDragKnife(DragKnifeDirection.VERTICAL);
+            }
         }
         else {
             System.err.println(
@@ -81,7 +81,7 @@ public class DragKnife {
         // Determine ramp direction
         if(direction == DragKnifeDirection.HORIZONTAL) {
 
-            // Calculate horizontal ramp exit
+            // Calculate horizontal ramp start
             rampStartPoint = new PointXY(startPoint.getX() - rampLength, 
                 startPoint.getY());
         }
