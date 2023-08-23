@@ -5,8 +5,10 @@ public class Program {
 	
 	private final static double DRAG_KNIFE_ORIENT_Z_HEIGHT = -0.15;
 	private final static int DRAG_KNIFE_ORIENT_TIMES = 2;
-	private final static double DRAG_KNIFE_OFFSET_FROM_CENTER = 0.35;
+	private final static double DRAG_KNIFE_OFFSET_FROM_CENTER = 0.45;//0.45;//0.35;//0.25;//0.35;
 	private final static double DRAG_KNIFE_OVER_CUT = 0.0;
+	private final static double DRAG_KNIFE_H_ENTRY_OFFSET = -0.3;
+	private final static double DRAG_KNIFE_V_ENTRY_OFFSET = 0.0;
 
 	// TODO: Remove
 	// private enum DragKnifeDirection {
@@ -101,6 +103,8 @@ public class Program {
 			DRAG_KNIFE_OFFSET_FROM_CENTER, 
 			gExtractor.getCutDepth(), 
 			gExtractor.getClearanceHeight());
+		knife.setHEntryOffset(DRAG_KNIFE_H_ENTRY_OFFSET);
+		knife.setVEntryOffset(DRAG_KNIFE_V_ENTRY_OFFSET);
 
 		generateVMoves(gParser, gExtractor, generator, knife);
 

@@ -18,9 +18,12 @@ public class DragKnife {
     private double offset;
     private double cutDepth;
     private double clearanceHeight;
+
     private double rampHeight;
     private double rampLength;
     
+    private double hEntryOffset;
+    private double vEntryOffset;
 
     public DragKnife(GCodeGenerator generator, double offset, double cutDepth,
         double clearanceHeight) {
@@ -30,9 +33,28 @@ public class DragKnife {
         this.clearanceHeight = clearanceHeight;
 
         rampHeight = 2;
-        rampLength = 4;
+        rampLength = 0;//8;
+
+        hEntryOffset = 0;
+        vEntryOffset = 0;
 
         this.knifeDirection = null;
+    }
+
+    public double getHEntryOffset() {
+        return hEntryOffset;
+    }
+
+    public void setHEntryOffset(double knifeHEntryOffset) {
+        this.hEntryOffset = knifeHEntryOffset;
+    }
+
+    public double getVEntryOffset() {
+        return vEntryOffset;
+    }
+
+    public void setVEntryOffset(double knifeVEntryOffset) {
+        this.vEntryOffset = knifeVEntryOffset;
     }
 
     public void drawLine(PointXY a, PointXY b) {
@@ -59,6 +81,7 @@ public class DragKnife {
         PointXY[] points = {a, b};
         sortPoints(points, knifeDirection);
         applyKnifeOffsets(points, knifeDirection);
+        applyDirectionalOffsets(points, knifeDirection);
 
         generateEntryRamp(points[0], knifeDirection);
 
@@ -72,6 +95,25 @@ public class DragKnife {
 
         generateExitRamp(points[1], knifeDirection);
 
+    }
+
+    private void applyDirectionalOffsets(PointXY[] points, 
+        DragKnifeDirection direction) {
+
+        //offset along x axis
+        if(direction == DragKnifeDirection.HORIZONTAL) {
+            points[0].setX(points[0].getX() + hEntryOffset);
+        }
+        //offset along y axis
+        else if(direction == DragKnifeDirection.VERTICAL) {
+            points[0].setY(points[0].getY() + vEntryOffset);
+        }
+        //error
+        else {
+            System.err.println(
+                "Only horizontal and vertical lines are supported.");
+            return;
+        }
     }
 
     private void generateEntryRamp(PointXY startPoint, 
@@ -123,7 +165,7 @@ public class DragKnife {
         if(direction == DragKnifeDirection.HORIZONTAL) {
             
             // Offset x component for entry
-            points[0] = new PointXY(points[0].getX() - offset, 
+            points[0] = new PointXY(points[0].getX() + offset, 
                 points[0].getY());
 
             // Offset x component for exit
@@ -134,7 +176,7 @@ public class DragKnife {
 
             // Offset y component for entry
             points[0] = new PointXY(points[0].getX(), 
-                points[0].getY() - offset);
+                points[0].getY() + offset);
 
             // Offset y component for exit
             points[1] = new PointXY(points[1].getX(), 
