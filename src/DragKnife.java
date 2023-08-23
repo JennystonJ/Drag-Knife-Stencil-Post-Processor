@@ -23,7 +23,9 @@ public class DragKnife {
     private double rampLength;
     
     private double hEntryOffset;
+    private double hExitOffset;
     private double vEntryOffset;
+    private double vExitOffset;
 
     public DragKnife(GCodeGenerator generator, double offset, double cutDepth,
         double clearanceHeight) {
@@ -36,7 +38,10 @@ public class DragKnife {
         rampLength = 0;//8;
 
         hEntryOffset = 0;
+        hExitOffset = 0;
+
         vEntryOffset = 0;
+        vExitOffset = 0;
 
         this.knifeDirection = null;
     }
@@ -45,16 +50,42 @@ public class DragKnife {
         return hEntryOffset;
     }
 
-    public void setHEntryOffset(double knifeHEntryOffset) {
-        this.hEntryOffset = knifeHEntryOffset;
+    public void setHEntryOffset(double hEntryOffset) {
+        this.hEntryOffset = hEntryOffset;
+    }
+
+    public double getHExitOffset() {
+        return hExitOffset;
+    }
+
+    public void setHExitOffset(double hExitOffset) {
+        this.hExitOffset = hExitOffset;
+    }
+
+    public void setHOffsets(double hEntryOffset, double hExitOffset) {
+        this.hEntryOffset = hEntryOffset;
+        this.hExitOffset = hExitOffset;
     }
 
     public double getVEntryOffset() {
         return vEntryOffset;
     }
 
-    public void setVEntryOffset(double knifeVEntryOffset) {
-        this.vEntryOffset = knifeVEntryOffset;
+    public void setVEntryOffset(double vEntryOffset) {
+        this.vEntryOffset = vEntryOffset;
+    }
+
+    public double getVExitOffset() {
+        return vExitOffset;
+    }
+
+    public void setVExitOffset(double vExitOffset) {
+        this.vExitOffset = vExitOffset;
+    }
+
+    public void setVOffsets(double vEntryOffset, double vExitOffset) {
+        this.vEntryOffset = vEntryOffset;
+        this.vExitOffset = vExitOffset;
     }
 
     public void drawLine(PointXY a, PointXY b) {
@@ -103,10 +134,12 @@ public class DragKnife {
         //offset along x axis
         if(direction == DragKnifeDirection.HORIZONTAL) {
             points[0].setX(points[0].getX() + hEntryOffset);
+            points[1].setX(points[1].getX() + hExitOffset);
         }
         //offset along y axis
         else if(direction == DragKnifeDirection.VERTICAL) {
             points[0].setY(points[0].getY() + vEntryOffset);
+            points[1].setY(points[1].getY() + vExitOffset);
         }
         //error
         else {
