@@ -8,12 +8,16 @@ public class DragKnife {
 
     private final static double DRAG_KNIFE_ORIENT_Z_HEIGHT = -0.15;
 	private final static int DRAG_KNIFE_ORIENT_TIMES = 2;
+    private final static int DRAG_KNIFE_ORIENT_DISTANCE = 5;
 	// private final static double DRAG_KNIFE_OFFSET_FROM_CENTER = 0.35;
 	// private final static double DRAG_KNIFE_OVER_CUT = 0.0;
     
     private GCodeGenerator generator;
     
     private DragKnifeDirection knifeDirection;
+
+    private int orientAfterMoves;
+    private int orientAfterMovesCount;
     
     private double offset;
     private double cutDepth;
@@ -44,6 +48,8 @@ public class DragKnife {
         vExitOffset = 0;
 
         this.knifeDirection = null;
+        orientAfterMoves = 4;
+        orientAfterMovesCount = 0;
     }
 
     public double getHEntryOffset() {
@@ -88,6 +94,14 @@ public class DragKnife {
         this.vExitOffset = vExitOffset;
     }
 
+    public int getOrientAfterMoves() {
+        return orientAfterMoves;
+    }
+
+    public void setOrientAfterMoves(int orientAfterMoves) {
+        this.orientAfterMoves = orientAfterMoves;
+    }
+
     public void drawLine(PointXY a, PointXY b) {
 
         // Determine if cut direction matches current direction
@@ -107,6 +121,12 @@ public class DragKnife {
             System.err.println(
                 "Only horizontal and vertical lines are supported.");
             return;
+        }
+
+        orientAfterMovesCount++;
+        if(orientAfterMovesCount == orientAfterMoves) {
+            orientAfterMovesCount = 0;
+            orientDragKnife(knifeDirection);
         }
 
         PointXY[] points = {a, b};
@@ -167,7 +187,7 @@ public class DragKnife {
                 startPoint.getY() - rampLength);
         }
 
-        generator.addLinear(new Coordinate(rampStartPoint.getX(), 
+        generator.addRapid(new Coordinate(rampStartPoint.getX(), 
             rampStartPoint.getY(), rampHeight));
     }
 
@@ -189,7 +209,7 @@ public class DragKnife {
                 endPoint.getY() + rampLength);
         }
 
-        generator.addLinear(new Coordinate(rampExitPoint.getX(), 
+        generator.addRapid(new Coordinate(rampExitPoint.getX(), 
             rampExitPoint.getY(), rampHeight));
     }
 
@@ -262,7 +282,7 @@ public class DragKnife {
 			generator.addLinearZ(clearanceHeight);
 
 			// move to start position
-			generator.addLinear(new Coordinate(point.getX(), point.getY(), 
+			generator.addRapid(new Coordinate(point.getX(), point.getY(), 
 				clearanceHeight));
 
 			// lower drag knife to orient height
@@ -273,6 +293,23 @@ public class DragKnife {
 				generator.addClockwiseArc(-point.getX(), -point.getY());
 			}
 
+            // move drag knife to ensure correct orientation
+            // find end point
+            PointXY endPoint;
+            // determine knife direction
+            if(direction == DragKnifeDirection.HORIZONTAL) {
+                endPoint = new PointXY(DRAG_KNIFE_ORIENT_DISTANCE + offset, 0);
+            }
+            else if(direction == DragKnifeDirection.VERTICAL) {
+                endPoint = new PointXY(0, DRAG_KNIFE_ORIENT_DISTANCE + offset);
+            }
+            else {
+                System.err.println("Drag Knife Direction not recognized!");
+                return;
+            }
+            //move knife by orient distance in appropriate direction
+            generator.addLinear(new Coordinate(endPoint.getX(), endPoint.getY(), 
+                DRAG_KNIFE_ORIENT_Z_HEIGHT));
 
 			// raise drag knife to clearance height for next move
 			generator.addLinearZ(clearanceHeight);
